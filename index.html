@@ -97,9 +97,17 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 .note{background:#FFF6E0;border:2px solid var(--sun);border-radius:14px;padding:12px 16px;margin-top:16px}
 .muted{color:var(--soft);font-size:.95rem}
 
+/* Recetas */
+.chips{margin:-2px 0 14px;display:flex;flex-direction:column;gap:6px}
+.chip{width:100%;text-align:left;min-height:50px;padding:8px 14px;border-radius:12px;border:2px solid var(--green);background:#fff;color:var(--green);font-weight:700;font-size:1rem}
+.rec h1{font-size:2rem}
+.rec .meta{color:var(--soft);margin:8px 0 14px}
+.rec .card ul,.rec .card ol{padding-left:24px;margin:8px 0 4px}
+.rec .card li{margin-bottom:10px}
+
 /* Barra inferior */
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-nav button{min-height:56px;border:0;border-radius:12px;background:transparent;font-weight:700;color:var(--soft);font-size:1rem}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px))}
+nav button{min-height:56px;border:0;border-radius:12px;background:transparent;font-weight:700;color:var(--soft);font-size:.9rem;padding:0 2px}
 nav button[aria-current="page"]{background:var(--green);color:#fff}
 @media (min-width:700px){nav{left:50%;right:auto;width:640px;transform:translateX(-50%);border-radius:16px 16px 0 0;border:2px solid var(--line);border-bottom:0}}
 @media (prefers-reduced-motion:no-preference){.meal,.item,.tick{transition:background .15s,border-color .15s}}
@@ -111,7 +119,8 @@ nav button[aria-current="page"]{background:var(--green);color:#fff}
   <button data-a="tab" data-v="hoy">Hoy</button>
   <button data-a="tab" data-v="plan">Plan</button>
   <button data-a="tab" data-v="compra">Compra</button>
-  <button data-a="tab" data-v="consejos">Consejos</button>
+  <button data-a="tab" data-v="recetas">Recetas</button>
+  <button data-a="tab" data-v="consejos">Guía</button>
 </nav>
 
 <script>
@@ -147,14 +156,180 @@ const DAYS = [
 const MEDIA = ["Una manzana","Una pera","Dos kiwis","Un puñado de fresas o frutos rojos","Una naranja o dos mandarinas","Un plátano pequeño","Una manzana con canela"];
 const MERIENDA = ["Un puñado de nueces (6-8)","Un puñado de almendras","Zanahoria en palitos con hummus","Queso fresco con tomate","Una infusión y 2 nueces","Un yogur natural sin azúcar","Una infusión y un puñado de almendras"];
 
+/* ---------- Recetas ---------- */
+const REC = {
+  "avena":{n:"Avena cocida con fruta",t:"10 min",
+    i:["40 g de copos de avena","200 ml de agua o de leche semidesnatada","Fruta del día: manzana, pera, plátano, frutos rojos o kiwi","Canela al gusto","Nueces o almendras (un puñado pequeño)"],
+    p:["Pon la avena y el líquido en un cazo a fuego medio.","Cuece 5 minutos removiendo, hasta que espese.","Si usas manzana o pera, trocéala y cuécela con la avena los últimos 3 minutos.","Sirve con la fruta cruda (plátano, kiwi, frutos rojos), la canela y los frutos secos."],
+    v:"Día 1: manzana y canela. Día 4: frutos rojos. Días 7 y 16: plátano y canela. Día 10: pera y canela. Día 13: kiwi y almendras. Día 19: manzana y nueces. Sin azúcar ni miel; si quieres más dulzor, usa el plátano muy maduro."},
+  "yogur":{n:"Yogur con fruta y frutos secos",t:"3 min",
+    i:["1 yogur natural sin azúcar","Fruta del día: kiwi, pera, manzana, fresas o frutos rojos","Nueces o almendras (un puñado pequeño)","Opcional: 1 cucharada de copos de avena"],
+    p:["Pon el yogur en un bol.","Trocea la fruta y añádela.","Termina con los frutos secos troceados y la avena, si toca."],
+    v:"Día 2: nueces y kiwi. Día 5: nueces y pera. Día 9: avena y fresas. Día 12: nueces y manzana. Día 15: frutos rojos y nueces. Día 18: kiwi y almendras. Día 21: fresas y avena."},
+  "tostada-aguacate":{n:"Tostada con aguacate",t:"5 min",
+    i:["1 o 2 rebanadas de pan integral","½ aguacate maduro","Unas gotas de limón","Una pizca de sal","Rodajas de tomate (solo el día 11)"],
+    p:["Tuesta el pan.","Chafa el aguacate con un tenedor, con el limón y la sal.","Extiéndelo sobre el pan y añade el tomate si toca."],
+    v:"Días 3 y 17: solo aguacate. Día 11: aguacate y tomate."},
+  "tostada-tomate":{n:"Tostada con tomate",t:"5 min",
+    i:["1 o 2 rebanadas de pan integral","1 tomate maduro","1 cucharada de aceite de oliva virgen extra","Según el día: 2 lonchas de queso fresco o 1 huevo cocido"],
+    p:["Tuesta el pan.","Ralla el tomate o aplástalo con un tenedor y extiéndelo sobre el pan.","Añade el aceite en hilo.","Si toca, pon encima el queso fresco en lonchas o el huevo cocido en rodajas (cuécelo 10 minutos en agua hirviendo)."],
+    v:"Día 6: tomate y aceite. Días 8 y 20: con queso fresco. Día 14: con aceite y un huevo cocido, sin tomate."},
+
+  "lentejas":{n:"Lentejas con verduras",t:"40 min",
+    i:["60 g de lentejas secas (o 150 g ya cocidas)","1 zanahoria","1 puerro","Un puñado de espinacas, o 150 g de calabaza","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","1 hoja de laurel y una pizca de sal"],
+    p:["Pica la zanahoria, el puerro y el ajo. Si usas calabaza, trocéala.","Rehoga las verduras en el aceite 5 minutos, en una olla.","Añade las lentejas lavadas, el laurel y agua que las cubra dos dedos.","Cuece a fuego suave unos 30 minutos, hasta que estén tiernas. Añade agua caliente si hace falta.","Los últimos 3 minutos añade las espinacas. Sala al final."],
+    v:"Día 1: con zanahoria, puerro y espinacas. Día 10: estofadas con calabaza. Sin chorizo ni tocino. Con lentejas de bote, acláralas y cuécelas solo 15 minutos con las verduras."},
+  "garbanzos":{n:"Garbanzos con verduras",t:"25 min",
+    i:["150 g de garbanzos cocidos (de bote, bien aclarados)","Un puñado grande de espinacas, o 1 calabacín y 1 zanahoria","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","Una pizca de pimentón dulce y otra de comino","Sal"],
+    p:["Lamina el ajo y dóralo suavemente en el aceite.","Añade el pimentón, remueve unos segundos y echa los garbanzos con un vaso de agua.","Si usas calabacín y zanahoria, trocéalos pequeños y cuécelos con los garbanzos 12 minutos.","Si usas espinacas, añádelas al final y cuece 3 minutos, hasta que se reduzcan.","Prueba y rectifica de sal."],
+    v:"Día 3: con espinacas. Día 19: con calabacín y zanahoria."},
+  "cocido-garbanzos":{n:"Cocido ligero de garbanzos",t:"1 h 30 (45 min con garbanzos cocidos)",
+    i:["60 g de garbanzos secos remojados la noche anterior (o 150 g cocidos)","1 zanahoria","1 patata pequeña","1 puerro","1 cebolla pequeña","1 cucharada de aceite de oliva virgen extra","1 hoja de laurel y sal"],
+    p:["Pon los garbanzos remojados en una olla con agua fría y el laurel. Cuece una hora (20 minutos en olla exprés). Con garbanzos cocidos, sáltate este paso.","Añade la zanahoria, la patata, el puerro y la cebolla, troceados.","Cuece 20 minutos, hasta que todo esté tierno.","Aliña con el aceite y sala al gusto. Puedes tomarlo como sopa y plato a la vez."],
+    v:"Versión ligera: sin chorizo, tocino ni morcilla."},
+  "alubias-blancas":{n:"Alubias blancas con verduras",t:"30 min",
+    i:["150 g de alubias blancas cocidas (de bote, aclaradas)","1 zanahoria","1 cebolla pequeña","1 puerro, o un manojo de acelgas","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","1 hoja de laurel y sal"],
+    p:["Pica la cebolla, el ajo, la zanahoria y el puerro. Si usas acelgas, separa tallos y hojas.","Rehoga en el aceite 5 minutos (con acelgas, empieza por los tallos).","Añade las alubias, el laurel y agua hasta casi cubrir.","Cuece 15 minutos a fuego suave. Si usas acelgas, añade las hojas los últimos 5 minutos.","Rectifica de sal."],
+    v:"Día 7: con puerro. Día 17: con acelgas."},
+  "alubias-pintas":{n:"Alubias pintas guisadas",t:"40 min",
+    i:["150 g de alubias pintas cocidas","1 zanahoria","1 pimiento verde pequeño","1 cebolla pequeña","1 tomate maduro rallado","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","1 cucharadita de pimentón dulce, laurel y sal"],
+    p:["Pica la cebolla, el pimiento, la zanahoria y el ajo.","Rehoga en el aceite 8 minutos. Añade el pimentón y el tomate rallado, y cocina 5 minutos más.","Agrega las alubias, el laurel y un vaso de agua.","Cuece 15 minutos a fuego suave, hasta que la salsa espese."],
+    v:"Sin chorizo ni tocino."},
+  "ensalada-lentejas":{n:"Ensalada de lentejas",t:"15 min",
+    i:["150 g de lentejas cocidas, aclaradas","1 tomate","½ pepino","1 huevo","Un poco de cebolla tierna","1 cucharada de aceite de oliva virgen extra","Zumo de ½ limón y sal"],
+    p:["Cuece el huevo 10 minutos, enfríalo y pélalo.","Trocea el tomate, el pepino y la cebolla en dados.","Mezcla con las lentejas.","Aliña con el aceite, el limón y la sal. Añade el huevo troceado por encima."]},
+
+  "merluza-horno":{n:"Merluza al horno con verdura",t:"25 min",
+    i:["150 g de merluza","150 g de brócoli o de judías verdes","½ limón","1 cucharada de aceite de oliva virgen extra","1 diente de ajo","Perejil y sal"],
+    p:["Precalienta el horno a 180 °C.","Cuece el brócoli (o las judías) 5 minutos en agua con sal y escúrrelo.","Pon la verdura en una fuente, coloca la merluza encima y sazona.","Añade el ajo laminado, el aceite y el zumo de limón.","Hornea 12 o 15 minutos. Termina con perejil."],
+    v:"Día 1: con brócoli. Día 20: con judías verdes, acompañada de arroz integral hervido."},
+  "merluza-verde":{n:"Merluza en salsa verde",t:"25 min",
+    i:["150 g de merluza","1 patata cocida","Un puñado de guisantes","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","1 cucharada de harina (opcional)","Perejil fresco","150 ml de agua o caldo de pescado, y sal"],
+    p:["Dora el ajo laminado en el aceite, sin que se queme.","Añade el perejil picado y la harina; remueve 30 segundos y agrega el agua poco a poco hasta tener una salsa ligera.","Pon los guisantes y cuece 5 minutos.","Añade la merluza salada y cuece 5 o 6 minutos, moviendo la cazuela en vez de remover.","Sirve con la patata cocida en rodajas."]},
+  "pescado-azul":{n:"Sardinas o caballa al horno",t:"20 min",
+    i:["2 o 3 sardinas, o 1 filete de caballa (150 g)","½ limón","1 diente de ajo","1 cucharadita de aceite de oliva virgen extra","Perejil y sal","Opcional: 1 tomate y ½ cebolla en rodajas para la base"],
+    p:["Precalienta el horno a 200 °C.","Pide al pescadero que limpie el pescado.","Pon en la bandeja la base de tomate y cebolla, y el pescado encima.","Rocía con el aceite, el limón y el ajo picado. Sala ligeramente.","Hornea 12 o 15 minutos. Sirve con la ensalada."],
+    v:"Día 3: sardinas. Día 10: caballa. Día 19: caballa o sardinas."},
+  "salmon":{n:"Salmón al horno con verdura",t:"25 min",
+    i:["150 g de salmón","150 g de verdura: espárragos, calabacín o brócoli","1 patata (solo el día 15)","½ limón","1 cucharada de aceite de oliva virgen extra","Eneldo o perejil, y sal"],
+    p:["Precalienta el horno a 180 °C.","Trocea la verdura y ponla en una bandeja con la mitad del aceite.","Coloca el salmón encima, sazona y añade el limón y el eneldo.","Hornea 12 o 15 minutos.","Si hay patata, cuécela aparte 15 minutos y sírvela al lado."],
+    v:"Día 6: con espárragos. Día 13: con calabacín. Día 15: con brócoli y patata cocida."},
+  "bacalao":{n:"Bacalao al horno con pimientos o tomate",t:"30 min",
+    i:["150 g de bacalao fresco o desalado","2 pimientos (día 8) o 2 tomates maduros (día 17)","1 cebolla pequeña","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","Perejil y sal"],
+    p:["Precalienta el horno a 180 °C.","Corta en tiras los pimientos y la cebolla (o en rodajas los tomates).","Colócalos en una fuente con el ajo laminado y el aceite, y hornea 15 minutos.","Pon el bacalao encima y hornea 10 o 12 minutos más.","Si el bacalao es desalado, no añadas sal."],
+    v:"Día 8: con pimientos. Día 17: con tomate natural."},
+  "pescado-plancha":{n:"Pescado blanco a la plancha",t:"8 min",
+    i:["150 g de pescado blanco (merluza, lubina, rape...)","1 cucharadita de aceite de oliva virgen extra","½ limón","Ajo y perejil picados, y sal"],
+    p:["Seca el pescado con papel de cocina.","Calienta la plancha o la sartén con el aceite.","Cocina 3 o 4 minutos por cada lado, según el grosor.","Sirve con el ajo, el perejil y unas gotas de limón."]},
+
+  "pollo-plancha":{n:"Pollo a la plancha",t:"15 min",
+    i:["150 g de pechuga de pollo en filetes","1 cucharadita de aceite de oliva virgen extra","Zumo de ½ limón","1 diente de ajo","Perejil, pimienta y sal"],
+    p:["Marina el pollo 10 minutos con el limón, el ajo picado y la pimienta.","Calienta la plancha con el aceite.","Cocina 4 o 5 minutos por cada lado, hasta que no quede rosado por dentro.","Sirve con ensalada y arroz integral."]},
+  "pollo-horno":{n:"Pollo al horno con verduras",t:"50 min",
+    i:["1 o 2 muslos de pollo sin piel (o ½ pechuga)","1 calabacín","1 zanahoria","150 g de calabaza","1 cucharada de aceite de oliva virgen extra","Ajo en polvo, tomillo y sal"],
+    p:["Precalienta el horno a 190 °C.","Corta las verduras en trozos medianos y ponlas en una fuente.","Coloca encima el pollo sin piel y sazona con el ajo, el tomillo y la sal.","Rocía con el aceite.","Hornea 40 minutos, dando la vuelta a todo a mitad de cocción."],
+    v:"Día 7: con calabaza. Día 16: con verduras asadas."},
+  "pavo-plancha":{n:"Pavo a la plancha",t:"10 min",
+    i:["150 g de filetes de pechuga de pavo","1 cucharadita de aceite de oliva virgen extra","Zumo de ½ limón","Ajo en polvo, pimienta y sal"],
+    p:["Sazona los filetes con el limón, el ajo y la pimienta, y déjalos 10 minutos.","Calienta la plancha con el aceite.","Cocina 3 o 4 minutos por cada lado."],
+    v:"Día 14: con la crema de espárragos. Día 21: con ensalada y patata cocida (15 minutos en agua con sal)."},
+  "pavo-verduras":{n:"Pavo con verduras salteadas",t:"25 min",
+    i:["150 g de pechuga de pavo en tacos","1 calabacín","1 zanahoria","½ pimiento","1 patata","1 cucharada de aceite de oliva virgen extra","Ajo, pimienta y sal"],
+    p:["Cuece la patata 15 minutos en agua con sal y trocéala.","Corta las verduras en tiras finas y el pavo en tacos.","Saltea el pavo en el aceite 4 minutos y retíralo.","En la misma sartén saltea las verduras 6 u 8 minutos.","Vuelve a poner el pavo, sazona y mezcla 1 minuto. Sirve con la patata."]},
+  "pavo-salsa":{n:"Pavo en salsa de verduras",t:"35 min",
+    i:["150 g de pechuga de pavo en filetes","1 zanahoria","1 puerro","½ cebolla","1 tomate rallado","1 cucharada de aceite de oliva virgen extra","1 vaso de agua, 1 hoja de laurel y sal"],
+    p:["Pica muy finas la zanahoria, el puerro y la cebolla.","Rehoga las verduras en el aceite 8 minutos; añade el tomate y cocina 3 minutos más.","Pon el pavo, el agua y el laurel.","Tapa y cuece a fuego suave 15 minutos, dándole la vuelta a mitad.","Tritura la salsa si prefieres que quede fina. Sirve con arroz integral."]},
+
+  "pasta-atun":{n:"Pasta integral con atún",t:"20 min",
+    i:["60 g de pasta integral","1 lata pequeña de atún al natural","1 calabacín y ½ pimiento (día 5), o 2 tomates maduros rallados (día 18)","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","Orégano y sal"],
+    p:["Cuece la pasta en agua con sal, el tiempo que indique el paquete.","Mientras, saltea el ajo y la verdura troceada (o el tomate rallado) en el aceite 8 minutos.","Añade el atún escurrido y mezcla 1 minuto.","Escurre la pasta, mézclala con la salsa y sirve."],
+    v:"Día 5: con calabacín y pimiento. Día 18: con tomate natural."},
+  "pasta-gambas":{n:"Pasta integral con calabacín y gambas",t:"20 min",
+    i:["60 g de pasta integral","100 g de gambas peladas","1 calabacín","1 diente de ajo","1 cucharada de aceite de oliva virgen extra","Perejil y sal"],
+    p:["Cuece la pasta en agua con sal.","Corta el calabacín en dados y saltéalo con el ajo en el aceite 5 minutos.","Añade las gambas y cocina 2 o 3 minutos, hasta que estén rosadas.","Mezcla con la pasta escurrida y el perejil."]},
+  "arroz-verduras":{n:"Arroz integral con verduras y huevo",t:"45 min",
+    i:["60 g de arroz integral","1 zanahoria","1 calabacín","½ pimiento","1 huevo","1 cucharada de aceite de oliva virgen extra","Sal"],
+    p:["Cuece el arroz 35 o 40 minutos en agua con sal y escúrrelo.","Corta las verduras en dados pequeños y saltéalas en el aceite 8 minutos.","Añade el arroz y mezcla 2 minutos.","Aparte, haz el huevo a la plancha con unas gotas de aceite, o cuécelo.","Sirve el arroz con el huevo encima."]},
+  "arroz":{n:"Arroz integral hervido",t:"40 min",
+    i:["60 g de arroz integral","Agua (unas 3 veces el volumen del arroz)","Una pizca de sal","Opcional: 1 hoja de laurel"],
+    p:["Lava el arroz en un colador.","Hierve el agua con la sal y el laurel, y echa el arroz.","Cuece 35 o 40 minutos a fuego medio, hasta que esté tierno.","Escurre y deja reposar 2 minutos."]},
+
+  "crema":{n:"Crema de verduras",t:"30 min",r:"2 raciones",
+    i:["400 g de la verdura del día: calabacín, puerro, zanahoria, calabaza o espárragos","1 patata pequeña","1 cebolla pequeña","1 cucharada de aceite de oliva virgen extra","500 ml de agua o de caldo casero","Sal y pimienta"],
+    p:["Trocea las verduras y la patata. En los espárragos, quita la parte dura del tallo.","Rehoga la cebolla en el aceite 3 minutos y añade el resto.","Cubre con el agua o el caldo y cuece 20 minutos, hasta que todo esté tierno.","Tritura hasta que quede fina. Ajusta la sal y el espesor con más agua si hace falta."],
+    v:"Día 2: calabacín. Día 4: puerro. Día 9: zanahoria. Día 14: espárragos. Día 16: calabaza. Día 21: mezcla de las verduras que tengas. La segunda ración aguanta 2 días en la nevera."},
+  "sopa":{n:"Sopa de verduras",t:"30 min",r:"2 raciones",
+    i:["1 zanahoria","1 puerro","1 calabacín","½ cebolla","1 patata pequeña","1 cucharada de aceite de oliva virgen extra","750 ml de agua","Una pizca de sal","Según el día: 1 huevo cocido, o 100 g de pollo hervido"],
+    p:["Corta las verduras en dados pequeños.","Rehógalas 3 minutos en el aceite y cubre con el agua.","Cuece 20 minutos a fuego suave.","Sirve con el huevo cocido troceado, o con el pollo desmenuzado (hierve la pechuga 15 minutos en agua con sal)."],
+    v:"Días 6 y 20: con huevo cocido. Día 11: con pollo desmenuzado."},
+  "tortilla":{n:"Tortilla con verduras",t:"10 min",
+    i:["2 huevos","80 g de champiñones, un puñado de espinacas o ½ calabacín (según el día)","1 cucharadita de aceite de oliva virgen extra","Sal"],
+    p:["Trocea la verdura y saltéala en una sartén antiadherente con el aceite, 4 o 5 minutos. Retírala.","Bate los huevos con una pizca de sal y mezcla con la verdura.","Vierte en la sartén y cuaja 2 minutos por cada lado (o dóblala por la mitad si es francesa)."],
+    v:"Día 2: sencilla, solo 2 huevos. Día 12: francesa con champiñones. Día 16: de espinacas. Día 21: de calabacín."},
+  "revuelto":{n:"Revuelto de verduras",t:"10 min",
+    i:["2 huevos","1 manojo de espárragos, 80 g de champiñones o un puñado de espinacas (según el día)","1 cucharadita de aceite de oliva virgen extra","Sal"],
+    p:["Corta los espárragos (sin la parte dura) y los champiñones en trozos.","Saltea la verdura en la sartén con el aceite 5 minutos.","Añade los huevos batidos y remueve a fuego suave 1 o 2 minutos, hasta que cuajen.","Sala al final."],
+    v:"Día 5: espárragos. Día 9: espinacas. Día 18: champiñones y espárragos."},
+
+  "ensalada":{n:"Ensalada mixta",t:"5 min",
+    i:["Lechuga o canónigos (un buen puñado)","1 tomate","1 zanahoria rallada o ½ pepino","Un poco de cebolla tierna (opcional)","1 cucharada de aceite de oliva virgen extra","Zumo de limón o un chorrito de vinagre","Sal"],
+    p:["Lava y trocea la lechuga y las verduras.","Mézclalo todo en un bol.","Aliña con el aceite, el limón y la sal justo antes de comer."]},
+  "hummus":{n:"Hummus casero",t:"10 min",r:"4 raciones",
+    i:["200 g de garbanzos cocidos, aclarados","1 cucharada de tahini (opcional)","1 diente de ajo pequeño","Zumo de ½ limón","2 cucharadas de aceite de oliva virgen extra","3 cucharadas de agua","Sal y una pizca de comino","Zanahoria en palitos, para mojar"],
+    p:["Pon todo menos la zanahoria en el vaso de la batidora.","Tritura hasta obtener una crema; añade más agua si queda espesa.","Prueba y ajusta el limón y la sal.","Sírvelo con los palitos de zanahoria. Aguanta 3 días en la nevera."]},
+  "queso-tomate":{n:"Queso fresco con tomate",t:"3 min",
+    i:["2 o 3 rodajas de queso fresco","1 tomate maduro","Un chorrito de aceite de oliva virgen extra","Orégano y una pizca de sal"],
+    p:["Corta el tomate en rodajas y el queso en lonchas.","Alterna en un plato.","Aliña con el aceite, el orégano y la sal."]},
+  "manzana-canela":{n:"Manzana con canela",t:"3 min",
+    i:["1 manzana","Canela en polvo"],
+    p:["Corta la manzana en gajos.","Espolvorea la canela por encima.","Si quieres, caliéntala 1 minuto en el microondas."]}
+};
+
+const RGROUPS = [
+  ["Desayunos",["avena","yogur","tostada-aguacate","tostada-tomate"]],
+  ["Legumbres",["lentejas","garbanzos","cocido-garbanzos","alubias-blancas","alubias-pintas","ensalada-lentejas"]],
+  ["Pescados",["merluza-horno","merluza-verde","pescado-azul","salmon","bacalao","pescado-plancha"]],
+  ["Carnes",["pollo-plancha","pollo-horno","pavo-plancha","pavo-verduras","pavo-salsa"]],
+  ["Pasta y arroz",["pasta-atun","pasta-gambas","arroz-verduras","arroz"]],
+  ["Cremas, sopas y huevos",["crema","sopa","tortilla","revuelto"]],
+  ["Ensaladas y meriendas",["ensalada","hummus","queso-tomate","manzana-canela"]]
+];
+
+/* Recetas de cada día */
+const PLAN_R = [
+  {d:["avena"], c:["lentejas"], n:["merluza-horno"]},
+  {d:["yogur"], c:["pollo-plancha","ensalada","arroz"], n:["crema","tortilla"]},
+  {d:["tostada-aguacate"], c:["garbanzos"], n:["pescado-azul","ensalada"]},
+  {d:["avena"], c:["pavo-verduras"], n:["crema","pescado-plancha"]},
+  {d:["yogur"], c:["pasta-atun"], n:["revuelto","ensalada"]},
+  {d:["tostada-tomate"], c:["salmon"], n:["sopa"]},
+  {d:["avena"], c:["alubias-blancas"], n:["pollo-horno"]},
+  {d:["tostada-tomate"], c:["alubias-pintas"], n:["bacalao"]},
+  {d:["yogur"], c:["pavo-salsa","arroz"], n:["crema","revuelto"]},
+  {d:["avena"], c:["lentejas"], n:["pescado-azul","ensalada"]},
+  {d:["tostada-aguacate"], c:["pasta-gambas"], n:["sopa"]},
+  {d:["yogur"], c:["merluza-verde"], n:["tortilla","ensalada"]},
+  {d:["avena"], c:["arroz-verduras"], n:["salmon"]},
+  {d:["tostada-tomate"], c:["cocido-garbanzos"], n:["crema","pavo-plancha"]},
+  {d:["yogur"], c:["salmon"], n:["ensalada-lentejas"]},
+  {d:["avena"], c:["pollo-horno"], n:["crema","tortilla"]},
+  {d:["tostada-aguacate"], c:["alubias-blancas"], n:["bacalao","ensalada"]},
+  {d:["yogur"], c:["pasta-atun"], n:["revuelto"]},
+  {d:["avena"], c:["garbanzos"], n:["pescado-azul","ensalada"]},
+  {d:["tostada-tomate"], c:["merluza-horno","arroz"], n:["sopa"]},
+  {d:["yogur"], c:["pavo-plancha","ensalada"], n:["crema","tortilla"]}
+];
+const MEDIA_R = {6:["manzana-canela"]};
+const MERIENDA_R = {2:["hummus"], 3:["queso-tomate"]};
+
 const SHOP = {
   1:[
-    {t:"Verduras",i:["Brócoli","Calabacín","Calabaza","Espárragos","Espinacas","Puerros","Zanahorias","Lechuga y ensalada variada","Tomates","Cebollas y ajo"]},
+    {t:"Verduras",i:["Brócoli","Calabacín","Calabaza","Espárragos","Espinacas","Puerros","Zanahorias","Lechuga y ensalada variada","Tomates","Pimientos","Cebollas y ajo"]},
     {t:"Fruta",i:["Manzanas","Kiwis","Peras","Plátanos","Frutos rojos","Limones"]},
     {t:"Pescado y carne",i:["Merluza","Sardinas","Pescado blanco para la cena","Atún en lata al natural","Salmón","Pollo (pechuga y muslos)","Pavo"]},
     {t:"Legumbres y cereales",i:["Lentejas","Garbanzos","Judías blancas","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
     {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Huevos"]},
-    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Aguacates","Canela"]}
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Aguacates","Canela","Especias y hierbas (laurel, pimentón, comino, orégano, tomillo, perejil)"]}
   ],
   2:[
     {t:"Verduras",i:["Pimientos","Champiñones","Espinacas","Calabaza","Zanahorias","Calabacín","Guisantes","Espárragos","Puerros","Lechuga y ensalada variada","Tomates","Cebollas, ajo y perejil"]},
@@ -162,7 +337,7 @@ const SHOP = {
     {t:"Pescado y carne",i:["Bacalao","Pechuga de pavo","Caballa","Gambas","Merluza","Salmón","Pollo"]},
     {t:"Legumbres y cereales",i:["Alubias pintas","Lentejas","Garbanzos","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
     {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Queso fresco","Huevos"]},
-    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Canela"]}
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Canela","Harina (una cucharada)","Especias y hierbas (laurel, pimentón, comino, orégano, tomillo, perejil)"]}
   ],
   3:[
     {t:"Verduras",i:["Brócoli","Calabaza","Acelgas","Champiñones","Espárragos","Judías verdes","Calabacín","Zanahorias","Puerros","Espinacas","Tomates","Pepino","Lechuga y ensalada variada","Cebollas y ajo"]},
@@ -170,7 +345,7 @@ const SHOP = {
     {t:"Pescado y carne",i:["Salmón","Bacalao","Merluza","Caballa o sardinas","Atún en lata al natural","Pollo","Pavo"]},
     {t:"Legumbres y cereales",i:["Lentejas","Alubias blancas","Garbanzos","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
     {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Queso fresco","Huevos"]},
-    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Tomate triturado natural","Canela"]}
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Tomate triturado natural","Canela","Especias y hierbas (laurel, pimentón, comino, orégano, tomillo, perejil)"]}
   ]
 };
 
@@ -189,7 +364,7 @@ let start = store.get("start", null);
 if(!start){ start = todayISO(); store.set("start", start); }
 let done = store.get("done", {});
 let shop = store.get("shop", {});
-const S = {view:"hoy", day:null, week:1, place:"o"};
+const S = {view:"hoy", day:null, week:1, place:"o", rid:null, prev:"hoy", y:0};
 const PLACES = {o:"Otero", g:"Gijón"};
 
 function dayIndex(){
@@ -204,13 +379,13 @@ const curDay = () => clamp(dayIndex(), 1, 21);
 function fmt(iso){ const p = iso.split("-"); return Number(p[2]) + "/" + Number(p[1]) + "/" + p[0]; }
 
 function mealsOf(n){
-  const x = DAYS[n-1], i = (n-1) % 7;
+  const x = DAYS[n-1], r = PLAN_R[n-1], i = (n-1) % 7;
   return [
-    {k:"d", name:"Desayuno", txt:x.d, main:true},
-    {k:"m", name:"Media mañana", txt:MEDIA[i]},
-    {k:"c", name:"Comida", txt:x.c, main:true},
-    {k:"t", name:"Merienda", txt:MERIENDA[i]},
-    {k:"n", name:"Cena", txt:x.n, main:true}
+    {k:"d", name:"Desayuno", txt:x.d, main:true, r:r.d},
+    {k:"m", name:"Media mañana", txt:MEDIA[i], r:MEDIA_R[i] || []},
+    {k:"c", name:"Comida", txt:x.c, main:true, r:r.c},
+    {k:"t", name:"Merienda", txt:MERIENDA[i], r:MERIENDA_R[i] || []},
+    {k:"n", name:"Cena", txt:x.n, main:true, r:r.n}
   ];
 }
 const isDone = (n,k) => !!done[n + ":" + k];
@@ -237,7 +412,9 @@ function renderHoy(){
   html += mealsOf(n).map(m =>
     '<button class="meal' + (m.main?" main":"") + '" data-a="meal" data-k="' + m.k + '" aria-pressed="' + isDone(n,m.k) + '">' +
     '<span class="txt"><span class="name">' + m.name + '</span><span class="dish">' + m.txt + '</span></span>' +
-    '<span class="tick" aria-hidden="true">' + (isDone(n,m.k)?"✓":"") + '</span></button>'
+    '<span class="tick" aria-hidden="true">' + (isDone(n,m.k)?"✓":"") + '</span></button>' +
+    (m.r.length ? '<div class="chips">' + m.r.map(id =>
+      '<button class="chip" data-a="rec" data-id="' + id + '">Ver receta: ' + REC[id].n + '</button>').join("") + '</div>' : "")
   ).join("");
 
   html += '<p class="muted">Aliña con aceite de oliva virgen extra, sin pasarte. Bebe agua a lo largo del día.</p>';
@@ -287,6 +464,27 @@ function renderCompra(){
   return html;
 }
 
+function renderRecetas(){
+  let html = '<h1>Recetas</h1><p class="muted">Cantidades para 1 ración, salvo que se indique otra cosa.</p>';
+  RGROUPS.forEach(g => {
+    html += '<h2>' + g[0] + '</h2>';
+    g[1].forEach(id => {
+      html += '<button class="row" data-a="rec" data-id="' + id + '"><span class="info"><b>' + REC[id].n + '</b><span>' + REC[id].t + '</span></span></button>';
+    });
+  });
+  return html;
+}
+
+function renderReceta(){
+  const r = REC[S.rid];
+  return '<div class="rec"><button class="btn wide" data-a="backrec" style="margin:0 0 14px">Volver</button>' +
+    '<h1>' + r.n + '</h1><p class="meta">Tiempo: ' + r.t + ' · Para ' + (r.r || "1 ración") + '</p>' +
+    '<div class="card"><h3>Ingredientes</h3><ul>' + r.i.map(x => '<li>' + x + '</li>').join("") + '</ul></div>' +
+    '<div class="card"><h3>Preparación</h3><ol>' + r.p.map(x => '<li>' + x + '</li>').join("") + '</ol></div>' +
+    (r.v ? '<div class="note"><b>Variantes.</b> ' + r.v + '</div>' : '') +
+    '<button class="btn wide" data-a="backrec" style="margin-top:14px">Volver</button></div>';
+}
+
 function renderConsejos(){
   return '<h1>Consejos</h1>' +
   '<div class="card"><h3>Cada día</h3><ul>' +
@@ -311,9 +509,9 @@ function renderConsejos(){
 function render(){
   if(S.day === null) S.day = curDay();
   const main = document.getElementById("app");
-  main.innerHTML = S.view==="hoy" ? renderHoy() : S.view==="plan" ? renderPlan() : S.view==="compra" ? renderCompra() : renderConsejos();
+  main.innerHTML = S.view==="hoy" ? renderHoy() : S.view==="plan" ? renderPlan() : S.view==="compra" ? renderCompra() : S.view==="recetas" ? renderRecetas() : S.view==="receta" ? renderReceta() : renderConsejos();
   document.querySelectorAll("nav button").forEach(b => {
-    if(b.dataset.v === S.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+    if(b.dataset.v === (S.view==="receta" ? S.prev : S.view)) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
 }
 
@@ -322,20 +520,22 @@ document.addEventListener("click", e => {
   const b = e.target.closest("[data-a]");
   if(!b) return;
   const a = b.dataset.a;
-  let top = false;
+  let top = false, ty = null;
   if(a === "tab"){ S.view = b.dataset.v; if(S.view==="hoy") S.day = curDay(); top = true; }
   else if(a === "goto"){ S.day = Number(b.dataset.d); S.view = "hoy"; top = true; }
   else if(a === "step"){ S.day = clamp(S.day + Number(b.dataset.s), 1, 21); top = true; }
   else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
   else if(a === "week"){ S.week = Number(b.dataset.w); }
   else if(a === "place"){ S.place = b.dataset.p; }
+  else if(a === "rec"){ if(S.view !== "receta"){ S.prev = S.view; S.y = window.scrollY; } S.rid = b.dataset.id; S.view = "receta"; top = true; }
+  else if(a === "backrec"){ S.view = S.prev || "hoy"; ty = S.y; }
   else if(a === "item"){ const k = b.dataset.key; if(shop[k]) delete shop[k]; else shop[k] = 1; store.set("shop", shop); }
   else if(a === "clearshop"){ Object.keys(shop).forEach(k => { if(k.indexOf(S.place + ":" + S.week + ":") === 0) delete shop[k]; }); store.set("shop", shop); }
   else if(a === "starttoday"){ start = todayISO(); store.set("start", start); S.day = curDay(); }
   else if(a === "reset"){ if(!confirm("¿Borrar todas las marcas de comidas?")) return; done = {}; store.set("done", done); }
   const y = window.scrollY;
   render();
-  window.scrollTo(0, top ? 0 : y);
+  window.scrollTo(0, ty !== null ? ty : (top ? 0 : y));
 });
 document.addEventListener("change", e => {
   if(e.target.id === "startDate" && e.target.value){
