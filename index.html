@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F5C3B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hígado 21">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Hígado 21 días</title>
+<style>
+:root{
+  --bg:#F1F5EE;
+  --card:#FFFFFF;
+  --ink:#1B2A21;
+  --soft:#58695E;
+  --green:#2F5C3B;
+  --green-2:#4C8A5B;
+  --leaf:#DCE9D8;
+  --sun:#D9A13B;
+  --line:#CFD9CB;
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:18px;line-height:1.45;-webkit-text-size-adjust:100%;min-height:100%}
+main{max-width:640px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{font-family:var(--serif);font-weight:700;line-height:1.15;margin:0}
+h1{font-size:2.3rem}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.15rem;margin:18px 0 6px}
+p{margin:0 0 10px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+/* Cabecera del día */
+.hero{background:var(--green);color:#fff;border-radius:18px;padding:20px 18px 18px;margin-bottom:16px}
+.hero .week{margin:0 0 4px;font-size:1rem;opacity:.9}
+.hero h1 small{font-size:1.1rem;font-weight:400;opacity:.85}
+.strip{display:grid;grid-template-columns:repeat(21,1fr);gap:3px;margin:16px 0 8px}
+.strip i{display:block;height:12px;border-radius:3px;background:rgba(255,255,255,.28)}
+.strip i.ok{background:#fff}
+.strip i.now{box-shadow:0 0 0 2px var(--sun)}
+.strip i.sel{height:18px;margin-top:-3px;background:var(--sun)}
+.hero .status{margin:0;font-size:.95rem;opacity:.95}
+
+/* Comidas */
+.meal{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px 14px;margin-bottom:10px;min-height:68px}
+.meal .txt{flex:1}
+.meal .name{display:block;font-size:.95rem;color:var(--soft)}
+.meal .dish{display:block;font-size:1.1rem;font-weight:600}
+.meal.main{border-color:var(--green-2)}
+.tick{flex:none;width:34px;height:34px;border-radius:50%;border:2.5px solid var(--green-2);display:grid;place-items:center;color:#fff;font-weight:700;font-size:1.2rem;background:#fff}
+.meal[aria-pressed="true"]{background:var(--leaf);border-color:var(--green)}
+.meal[aria-pressed="true"] .tick{background:var(--green);border-color:var(--green)}
+.meal[aria-pressed="true"] .dish{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--soft)}
+.nav2{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;min-height:56px;border-radius:14px;border:2px solid var(--green);background:var(--card);color:var(--green);font-weight:700;padding:10px 12px}
+.btn.fill{background:var(--green);color:#fff}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn.wide{width:100%;flex:none;margin-top:10px}
+
+/* Plan */
+.setup{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:6px}
+.setup label{display:block;font-weight:600;margin-bottom:6px}
+.setup input[type=date]{font:inherit;width:100%;min-height:52px;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;min-height:64px}
+.row .num{flex:none;width:44px;height:44px;border-radius:12px;background:var(--leaf);color:var(--green);display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:1.25rem}
+.row .info{flex:1;font-size:1rem;line-height:1.3}
+.row .info b{display:block;font-weight:600}
+.row .info span{color:var(--soft);font-size:.92rem}
+.row.today{border-color:var(--sun)}
+.row.done .num{background:var(--green);color:#fff}
+.row .mark{flex:none;color:var(--green);font-weight:700;font-size:1.3rem;width:24px;text-align:center}
+
+/* Compra */
+.seg2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.seg2.two{grid-template-columns:repeat(2,1fr)}
+.seg2 button{min-height:52px;border-radius:12px;border:2px solid var(--green);background:var(--card);color:var(--green);font-weight:700}
+.seg2 button[aria-pressed="true"]{background:var(--green);color:#fff}
+.item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;min-height:54px}
+.item .tick{width:28px;height:28px;font-size:1rem}
+.item[aria-pressed="true"]{background:var(--leaf);border-color:var(--green)}
+.item[aria-pressed="true"] .tick{background:var(--green);border-color:var(--green)}
+.item[aria-pressed="true"] .lbl{text-decoration:line-through;color:var(--soft)}
+
+/* Consejos */
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:6px 16px 12px;margin-bottom:12px}
+.card ul{margin:6px 0 0;padding-left:22px}
+.card li{margin-bottom:6px}
+.note{background:#FFF6E0;border:2px solid var(--sun);border-radius:14px;padding:12px 16px;margin-top:16px}
+.muted{color:var(--soft);font-size:.95rem}
+
+/* Barra inferior */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+nav button{min-height:56px;border:0;border-radius:12px;background:transparent;font-weight:700;color:var(--soft);font-size:1rem}
+nav button[aria-current="page"]{background:var(--green);color:#fff}
+@media (min-width:700px){nav{left:50%;right:auto;width:640px;transform:translateX(-50%);border-radius:16px 16px 0 0;border:2px solid var(--line);border-bottom:0}}
+@media (prefers-reduced-motion:no-preference){.meal,.item,.tick{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+<nav aria-label="Secciones">
+  <button data-a="tab" data-v="hoy">Hoy</button>
+  <button data-a="tab" data-v="plan">Plan</button>
+  <button data-a="tab" data-v="compra">Compra</button>
+  <button data-a="tab" data-v="consejos">Consejos</button>
+</nav>
+
+<script>
+"use strict";
+
+/* ---------- Datos: 21 días ---------- */
+const DAYS = [
+  /* Semana 1 */
+  {d:"Avena con manzana y canela", c:"Lentejas con verduras (zanahoria, puerro y espinacas)", n:"Merluza al horno con brócoli"},
+  {d:"Yogur natural con nueces y kiwi", c:"Pollo a la plancha con ensalada y arroz integral", n:"Crema de calabacín y tortilla de 2 huevos"},
+  {d:"Tostada integral con aguacate", c:"Garbanzos con espinacas", n:"Sardinas al horno con ensalada"},
+  {d:"Avena con frutos rojos", c:"Pavo con verduras salteadas y patata cocida", n:"Crema de puerro y pescado blanco a la plancha"},
+  {d:"Yogur natural con nueces y pera", c:"Pasta integral con verduras y atún", n:"Revuelto de espárragos y ensalada"},
+  {d:"Tostada integral con tomate y aceite de oliva", c:"Salmón al horno con espárragos", n:"Sopa de verduras y huevo cocido"},
+  {d:"Avena con plátano y canela", c:"Judías blancas con verduras", n:"Pollo al horno con calabaza"},
+  /* Semana 2 */
+  {d:"Tostada integral con queso fresco y tomate", c:"Alubias pintas guisadas con verduras (sin chorizo ni tocino)", n:"Bacalao al horno con pimientos"},
+  {d:"Yogur natural con avena y fresas", c:"Pechuga de pavo en salsa de verduras con arroz integral", n:"Crema de zanahoria y huevos revueltos con espinacas"},
+  {d:"Avena cocida con pera y canela", c:"Lentejas estofadas con verduras y calabaza", n:"Caballa al horno con ensalada"},
+  {d:"Tostada integral con aguacate y tomate", c:"Pasta integral con calabacín y gambas", n:"Sopa de verduras con pollo desmenuzado"},
+  {d:"Yogur natural con nueces y manzana", c:"Merluza en salsa verde con patata cocida y guisantes", n:"Tortilla francesa con champiñones y ensalada"},
+  {d:"Avena con kiwi y almendras", c:"Arroz integral con verduras salteadas y un huevo", n:"Salmón al horno con calabacín"},
+  {d:"Tostada integral con aceite de oliva y un huevo cocido", c:"Cocido ligero de garbanzos con verduras (sin chorizo ni tocino)", n:"Crema de espárragos y pavo a la plancha"},
+  /* Semana 3 */
+  {d:"Yogur natural con frutos rojos y nueces", c:"Salmón al horno con brócoli y patata cocida", n:"Ensalada de lentejas con tomate, pepino y huevo cocido"},
+  {d:"Avena con plátano y canela", c:"Pollo al horno con verduras asadas", n:"Crema de calabaza y tortilla de espinacas"},
+  {d:"Tostada integral con aguacate", c:"Alubias blancas con acelgas", n:"Bacalao con tomate natural y ensalada"},
+  {d:"Yogur natural con kiwi y almendras", c:"Pasta integral con tomate natural y atún", n:"Revuelto de champiñones y espárragos"},
+  {d:"Avena con manzana y nueces", c:"Garbanzos con calabacín y zanahoria", n:"Caballa o sardinas al horno con ensalada"},
+  {d:"Tostada integral con tomate y queso fresco", c:"Merluza al horno con judías verdes y arroz integral", n:"Sopa de verduras con huevo"},
+  {d:"Yogur natural con fresas y avena", c:"Pavo a la plancha con ensalada y patata cocida", n:"Crema de verduras y tortilla de calabacín"}
+];
+const MEDIA = ["Una manzana","Una pera","Dos kiwis","Un puñado de fresas o frutos rojos","Una naranja o dos mandarinas","Un plátano pequeño","Una manzana con canela"];
+const MERIENDA = ["Un puñado de nueces (6-8)","Un puñado de almendras","Zanahoria en palitos con hummus","Queso fresco con tomate","Una infusión y 2 nueces","Un yogur natural sin azúcar","Una infusión y un puñado de almendras"];
+
+const SHOP = {
+  1:[
+    {t:"Verduras",i:["Brócoli","Calabacín","Calabaza","Espárragos","Espinacas","Puerros","Zanahorias","Lechuga y ensalada variada","Tomates","Cebollas y ajo"]},
+    {t:"Fruta",i:["Manzanas","Kiwis","Peras","Plátanos","Frutos rojos","Limones"]},
+    {t:"Pescado y carne",i:["Merluza","Sardinas","Pescado blanco para la cena","Atún en lata al natural","Salmón","Pollo (pechuga y muslos)","Pavo"]},
+    {t:"Legumbres y cereales",i:["Lentejas","Garbanzos","Judías blancas","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
+    {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Huevos"]},
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Aguacates","Canela"]}
+  ],
+  2:[
+    {t:"Verduras",i:["Pimientos","Champiñones","Espinacas","Calabaza","Zanahorias","Calabacín","Guisantes","Espárragos","Puerros","Lechuga y ensalada variada","Tomates","Cebollas, ajo y perejil"]},
+    {t:"Fruta",i:["Peras","Fresas","Kiwis","Manzanas","Plátanos","Limones"]},
+    {t:"Pescado y carne",i:["Bacalao","Pechuga de pavo","Caballa","Gambas","Merluza","Salmón","Pollo"]},
+    {t:"Legumbres y cereales",i:["Alubias pintas","Lentejas","Garbanzos","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
+    {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Queso fresco","Huevos"]},
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Canela"]}
+  ],
+  3:[
+    {t:"Verduras",i:["Brócoli","Calabaza","Acelgas","Champiñones","Espárragos","Judías verdes","Calabacín","Zanahorias","Puerros","Espinacas","Tomates","Pepino","Lechuga y ensalada variada","Cebollas y ajo"]},
+    {t:"Fruta",i:["Plátanos","Manzanas","Kiwis","Fresas","Frutos rojos","Limones"]},
+    {t:"Pescado y carne",i:["Salmón","Bacalao","Merluza","Caballa o sardinas","Atún en lata al natural","Pollo","Pavo"]},
+    {t:"Legumbres y cereales",i:["Lentejas","Alubias blancas","Garbanzos","Avena","Arroz integral","Pasta integral","Pan integral","Patatas"]},
+    {t:"Lácteos y huevos",i:["Yogur natural sin azúcar","Queso fresco","Huevos"]},
+    {t:"Despensa",i:["Aceite de oliva virgen extra","Nueces","Almendras","Aguacates","Tomate triturado natural","Canela"]}
+  ]
+};
+
+/* ---------- Almacenamiento seguro ---------- */
+const store = {
+  get(k, f){ try { const v = localStorage.getItem(k); return v === null ? f : JSON.parse(v); } catch(e){ return f; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+/* ---------- Estado ---------- */
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+let start = store.get("start", null);
+if(!start){ start = todayISO(); store.set("start", start); }
+let done = store.get("done", {});
+let shop = store.get("shop", {});
+const S = {view:"hoy", day:null, week:1, place:"o"};
+const PLACES = {o:"Otero", g:"Gijón"};
+
+function dayIndex(){
+  const p = start.split("-").map(Number);
+  const s = new Date(p[0], p[1]-1, p[2]);
+  const n = new Date();
+  const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  return Math.round((t - s) / 864e5) + 1;
+}
+const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
+const curDay = () => clamp(dayIndex(), 1, 21);
+function fmt(iso){ const p = iso.split("-"); return Number(p[2]) + "/" + Number(p[1]) + "/" + p[0]; }
+
+function mealsOf(n){
+  const x = DAYS[n-1], i = (n-1) % 7;
+  return [
+    {k:"d", name:"Desayuno", txt:x.d, main:true},
+    {k:"m", name:"Media mañana", txt:MEDIA[i]},
+    {k:"c", name:"Comida", txt:x.c, main:true},
+    {k:"t", name:"Merienda", txt:MERIENDA[i]},
+    {k:"n", name:"Cena", txt:x.n, main:true}
+  ];
+}
+const isDone = (n,k) => !!done[n + ":" + k];
+const isComplete = n => isDone(n,"d") && isDone(n,"c") && isDone(n,"n");
+const countDone = n => mealsOf(n).filter(m => isDone(n,m.k)).length;
+
+/* ---------- Vistas ---------- */
+function renderHoy(){
+  const n = S.day, cur = curDay(), idx = dayIndex(), w = Math.ceil(n/7);
+  let strip = "";
+  for(let i=1;i<=21;i++){
+    strip += '<i class="' + (isComplete(i)?"ok ":"") + (i===cur?"now ":"") + (i===n?"sel":"") + '"></i>';
+  }
+  const completos = DAYS.reduce((a,_,i) => a + (isComplete(i+1)?1:0), 0);
+  let status = completos + " de 21 días completados";
+  if(idx < 1) status = "Tu plan empieza el " + fmt(start) + ". " + status;
+  if(idx > 21) status = "Han pasado los 21 días. " + status;
+
+  let html = '<section class="hero"><p class="week">Semana ' + w + '</p>' +
+    '<h1>Día ' + n + ' <small>de 21</small></h1>' +
+    '<div class="strip" aria-hidden="true">' + strip + '</div>' +
+    '<p class="status">' + status + '</p></section>';
+
+  html += mealsOf(n).map(m =>
+    '<button class="meal' + (m.main?" main":"") + '" data-a="meal" data-k="' + m.k + '" aria-pressed="' + isDone(n,m.k) + '">' +
+    '<span class="txt"><span class="name">' + m.name + '</span><span class="dish">' + m.txt + '</span></span>' +
+    '<span class="tick" aria-hidden="true">' + (isDone(n,m.k)?"✓":"") + '</span></button>'
+  ).join("");
+
+  html += '<p class="muted">Aliña con aceite de oliva virgen extra, sin pasarte. Bebe agua a lo largo del día.</p>';
+  html += '<div class="nav2"><button class="btn" data-a="step" data-s="-1"' + (n<=1?" disabled":"") + '>Día anterior</button>' +
+          '<button class="btn fill" data-a="step" data-s="1"' + (n>=21?" disabled":"") + '>Día siguiente</button></div>';
+  if(n !== cur) html += '<button class="btn wide" data-a="goto" data-d="' + cur + '">Volver al día de hoy</button>';
+  return html;
+}
+
+function renderPlan(){
+  const cur = curDay(), idx = dayIndex();
+  let html = '<h1>Plan de 21 días</h1>' +
+    '<div class="setup"><label for="startDate">Primer día del plan</label>' +
+    '<input type="date" id="startDate" value="' + start + '">' +
+    '<button class="btn wide" data-a="starttoday">Empezar hoy</button></div>';
+  for(let w=1; w<=3; w++){
+    html += '<h2>Semana ' + w + '</h2>';
+    for(let n=(w-1)*7+1; n<=w*7; n++){
+      const c = countDone(n), full = isComplete(n);
+      html += '<button class="row' + (n===cur && idx>=1 && idx<=21 ? " today":"") + (full?" done":"") + '" data-a="goto" data-d="' + n + '">' +
+        '<span class="num">' + n + '</span>' +
+        '<span class="info"><b>' + DAYS[n-1].c + '</b><span>' + c + ' de 5 comidas hechas</span></span>' +
+        '<span class="mark" aria-hidden="true">' + (full?"✓":"") + '</span></button>';
+    }
+  }
+  html += '<button class="btn wide" data-a="reset" style="margin-top:20px">Borrar marcas de comidas</button>';
+  return html;
+}
+
+function renderCompra(){
+  const w = S.week, p = S.place;
+  let html = '<h1>Compra en ' + PLACES[p] + '</h1>' +
+    '<p class="muted">Dos listas separadas, una para Otero y otra para Gijón, con sus propias marcas. Ajusta las cantidades a tu casa.</p>' +
+    '<div class="seg2 two">' + ["o","g"].map(x =>
+      '<button data-a="place" data-p="' + x + '" aria-pressed="' + (x===p) + '">' + PLACES[x] + '</button>').join("") + '</div>' +
+    '<div class="seg2">' + [1,2,3].map(x =>
+      '<button data-a="week" data-w="' + x + '" aria-pressed="' + (x===w) + '">Semana ' + x + '</button>').join("") + '</div>';
+  SHOP[w].forEach((g, gi) => {
+    html += '<h3>' + g.t + '</h3>';
+    g.i.forEach((it, ii) => {
+      const key = p + ":" + w + ":" + gi + ":" + ii, on = !!shop[key];
+      html += '<button class="item" data-a="item" data-key="' + key + '" aria-pressed="' + on + '">' +
+        '<span class="tick" aria-hidden="true">' + (on?"✓":"") + '</span><span class="lbl">' + it + '</span></button>';
+    });
+  });
+  html += '<button class="btn wide" data-a="clearshop" style="margin-top:18px">Desmarcar semana ' + w + ' en ' + PLACES[p] + '</button>';
+  return html;
+}
+
+function renderConsejos(){
+  return '<h1>Consejos</h1>' +
+  '<div class="card"><h3>Cada día</h3><ul>' +
+    '<li>Verduras en la comida y en la cena.</li>' +
+    '<li>Fruta entera, mejor que en zumo.</li>' +
+    '<li>Aceite de oliva virgen extra como grasa principal.</li>' +
+    '<li>Pescado azul 2 o 3 veces por semana; legumbres 3 o 4.</li>' +
+    '<li>Agua, infusiones y café sin azúcar.</li></ul></div>' +
+  '<div class="card"><h3>Evita</h3><ul>' +
+    '<li>Alcohol.</li>' +
+    '<li>Azúcar, refrescos, bollería y galletas.</li>' +
+    '<li>Fritos, embutidos y carnes procesadas.</li>' +
+    '<li>Platos preparados y ultraprocesados.</li></ul></div>' +
+  '<div class="card"><h3>Para que funcione</h3><ul>' +
+    '<li>Camina 30 minutos al día, a tu ritmo.</li>' +
+    '<li>Come despacio y sin prisas.</li>' +
+    '<li>Si un día te saltas el plan, retómalo en la siguiente comida.</li>' +
+    '<li>Al terminar, repite las semanas que más te hayan gustado.</li></ul></div>' +
+  '<div class="note"><b>Antes de empezar.</b> Este plan es orientativo y no sustituye a tu médico. Si tienes un diagnóstico o tomas medicación, consúltalo con él. Con anticoagulantes, por ejemplo, conviene hablar de la cantidad de verduras de hoja verde (espinacas, acelgas).</div>';
+}
+
+function render(){
+  if(S.day === null) S.day = curDay();
+  const main = document.getElementById("app");
+  main.innerHTML = S.view==="hoy" ? renderHoy() : S.view==="plan" ? renderPlan() : S.view==="compra" ? renderCompra() : renderConsejos();
+  document.querySelectorAll("nav button").forEach(b => {
+    if(b.dataset.v === S.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-a]");
+  if(!b) return;
+  const a = b.dataset.a;
+  let top = false;
+  if(a === "tab"){ S.view = b.dataset.v; if(S.view==="hoy") S.day = curDay(); top = true; }
+  else if(a === "goto"){ S.day = Number(b.dataset.d); S.view = "hoy"; top = true; }
+  else if(a === "step"){ S.day = clamp(S.day + Number(b.dataset.s), 1, 21); top = true; }
+  else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
+  else if(a === "week"){ S.week = Number(b.dataset.w); }
+  else if(a === "place"){ S.place = b.dataset.p; }
+  else if(a === "item"){ const k = b.dataset.key; if(shop[k]) delete shop[k]; else shop[k] = 1; store.set("shop", shop); }
+  else if(a === "clearshop"){ Object.keys(shop).forEach(k => { if(k.indexOf(S.place + ":" + S.week + ":") === 0) delete shop[k]; }); store.set("shop", shop); }
+  else if(a === "starttoday"){ start = todayISO(); store.set("start", start); S.day = curDay(); }
+  else if(a === "reset"){ if(!confirm("¿Borrar todas las marcas de comidas?")) return; done = {}; store.set("done", done); }
+  const y = window.scrollY;
+  render();
+  window.scrollTo(0, top ? 0 : y);
+});
+document.addEventListener("change", e => {
+  if(e.target.id === "startDate" && e.target.value){
+    start = e.target.value; store.set("start", start); S.day = curDay(); render();
+  }
+});
+
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "Hígado 21 días",
+  "short_name": "Hígado 21",
+  "description": "Plan de comidas de 21 días para cuidar el hígado",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F1F5EE",
+  "theme_color": "#2F5C3B",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
