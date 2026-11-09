@@ -105,6 +105,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 .rec .card ul,.rec .card ol{padding-left:24px;margin:8px 0 4px}
 .rec .card li{margin-bottom:10px}
 
+#toast{position:fixed;left:16px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px));max-width:608px;margin:0 auto;background:var(--ink);color:#fff;padding:14px 16px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5}
+#toast.show{opacity:1}
+
 /* Barra inferior */
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px))}
 nav button{min-height:56px;border:0;border-radius:12px;background:transparent;font-weight:700;color:var(--soft);font-size:.9rem;padding:0 2px}
@@ -485,6 +488,59 @@ function renderReceta(){
     '<button class="btn wide" data-a="backrec" style="margin-top:14px">Volver</button></div>';
 }
 
+function toast(msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
+  t.textContent = msg; t.className = "show";
+  clearTimeout(toast.h); toast.h = setTimeout(() => { t.className = ""; }, 3500);
+}
+function markBackup(){
+  store.set("lastBackup", todayISO()); toast("Copia lista.");
+  if(S.view === "consejos") render();
+}
+async function doBackup(){
+  const data = {app:"higado21", version:1, fecha:new Date().toISOString(), start:start, done:done, shop:shop};
+  const name = "higado21-copia-" + todayISO() + ".json";
+  const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+  try{
+    const file = new File([blob], name, {type:"application/json"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"Copia Hígado 21 días"});
+      markBackup(); return;
+    }
+  }catch(e){ if(e && e.name === "AbortError") return; }
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    markBackup();
+  }catch(e){ toast("No se pudo guardar la copia."); }
+}
+function doRestore(){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".json,application/json";
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      let d;
+      try{
+        d = JSON.parse(r.result);
+        if(!d || d.app !== "higado21" || !d.done || typeof d.done !== "object" || !d.shop || typeof d.shop !== "object") throw new Error("formato");
+      }catch(e){ alert("Ese archivo no es una copia de esta app."); return; }
+      if(!confirm("Se sustituirán tus marcas actuales por las de la copia. ¿Continuar?")) return;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(d.start)) start = d.start;
+      done = d.done; shop = d.shop;
+      store.set("start", start); store.set("done", done); store.set("shop", shop);
+      S.day = curDay(); render(); toast("Copia restaurada.");
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
 function renderConsejos(){
   return '<h1>Consejos</h1>' +
   '<div class="card"><h3>Cada día</h3><ul>' +
@@ -503,6 +559,11 @@ function renderConsejos(){
     '<li>Come despacio y sin prisas.</li>' +
     '<li>Si un día te saltas el plan, retómalo en la siguiente comida.</li>' +
     '<li>Al terminar, repite las semanas que más te hayan gustado.</li></ul></div>' +
+  '<div class="card"><h3>Copia de seguridad</h3>' +
+    '<p>Guarda en un archivo tus marcas, tus listas de la compra y la fecha de inicio, por si cambias de móvil o borras los datos del navegador. Guárdalo en Drive o envíatelo a ti mismo.</p>' +
+    '<p class="muted">' + (store.get("lastBackup", null) ? "Última copia: " + fmt(store.get("lastBackup", null)) : "Todavía no has hecho ninguna copia.") + '</p>' +
+    '<button class="btn fill wide" data-a="backup">Guardar copia</button>' +
+    '<button class="btn wide" data-a="restore">Restaurar copia</button></div>' +
   '<div class="note"><b>Antes de empezar.</b> Este plan es orientativo y no sustituye a tu médico. Si tienes un diagnóstico o tomas medicación, consúltalo con él. Con anticoagulantes, por ejemplo, conviene hablar de la cantidad de verduras de hoja verde (espinacas, acelgas).</div>';
 }
 
@@ -526,6 +587,8 @@ document.addEventListener("click", e => {
   else if(a === "step"){ S.day = clamp(S.day + Number(b.dataset.s), 1, 21); top = true; }
   else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
   else if(a === "week"){ S.week = Number(b.dataset.w); }
+  else if(a === "backup"){ doBackup(); }
+  else if(a === "restore"){ doRestore(); }
   else if(a === "place"){ S.place = b.dataset.p; }
   else if(a === "rec"){ if(S.view !== "receta"){ S.prev = S.view; S.y = window.scrollY; } S.rid = b.dataset.id; S.view = "receta"; top = true; }
   else if(a === "backrec"){ S.view = S.prev || "hoy"; ty = S.y; }
