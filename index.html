@@ -500,7 +500,7 @@ function markBackup(){
 }
 async function doBackup(){
   const data = {app:"higado21", version:1, fecha:new Date().toISOString(), start:start, done:done, shop:shop};
-  const name = "higado21-copia-" + todayISO() + ".json";
+  const name = todayISO().replace(/-/g, "") + " Hígado.json";
   const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
   try{
     const file = new File([blob], name, {type:"application/json"});
