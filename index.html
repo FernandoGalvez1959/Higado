@@ -105,6 +105,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 .rec .card ul,.rec .card ol{padding-left:24px;margin:8px 0 4px}
 .rec .card li{margin-bottom:10px}
 
+.warn{background:#FFF6E0;border:2px solid var(--sun);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+.warn p{margin:0 0 8px;font-weight:600}
+.warn .btn{margin-top:0}
+.warn .two{display:flex;gap:10px}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px));max-width:608px;margin:0 auto;background:var(--ink);color:#fff;padding:14px 16px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5}
 #toast.show{opacity:1}
 
@@ -488,6 +492,38 @@ function renderReceta(){
     '<button class="btn wide" data-a="backrec" style="margin-top:14px">Volver</button></div>';
 }
 
+function hasData(){ return Object.keys(done).length > 0 || Object.keys(shop).length > 0; }
+function daysSince(iso){
+  const p = iso.split("-").map(Number);
+  const a = new Date(p[0], p[1]-1, p[2]), n = new Date();
+  return Math.floor((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - a) / 864e5);
+}
+let persisted = null;
+function askPersist(){
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      navigator.storage.persist().then(() => navigator.storage.persisted()).then(v => {
+        persisted = !!v; if(S.view === "consejos") render();
+      }).catch(() => {});
+    }
+  }catch(e){}
+}
+function banner(){
+  if(S.view === "receta") return "";
+  if(hasData()){
+    const last = store.get("lastBackup", null);
+    const d = daysSince(last || start);
+    if(d > 14){
+      return '<div class="warn"><p>' + (last ? "Sin copia de seguridad desde hace " + d + " días." : "Todavía no has hecho ninguna copia de seguridad.") + '</p>' +
+        '<button class="btn fill wide" data-a="backup">Guardar copia ahora</button></div>';
+    }
+  } else if(S.view === "hoy" && !store.get("hintOff", false) && !store.get("lastBackup", null)){
+    return '<div class="warn"><p>¿Ya usabas la app y se han borrado tus datos? Restaura tu copia de seguridad.</p>' +
+      '<div class="two"><button class="btn fill" data-a="restore">Restaurar copia</button><button class="btn" data-a="hidehint">Ocultar</button></div></div>';
+  }
+  return "";
+}
+
 function toast(msg){
   let t = document.getElementById("toast");
   if(!t){ t = document.createElement("div"); t.id = "toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
@@ -496,7 +532,7 @@ function toast(msg){
 }
 function markBackup(){
   store.set("lastBackup", todayISO()); toast("Copia lista.");
-  if(S.view === "consejos") render();
+  render();
 }
 async function doBackup(){
   const data = {app:"higado21", version:1, fecha:new Date().toISOString(), start:start, done:done, shop:shop};
@@ -562,6 +598,10 @@ function renderConsejos(){
   '<div class="card"><h3>Copia de seguridad</h3>' +
     '<p>Guarda en un archivo tus marcas, tus listas de la compra y la fecha de inicio, por si cambias de móvil o borras los datos del navegador. Guárdalo en Drive o envíatelo a ti mismo.</p>' +
     '<p class="muted">' + (store.get("lastBackup", null) ? "Última copia: " + fmt(store.get("lastBackup", null)) : "Todavía no has hecho ninguna copia.") + '</p>' +
+    '<p class="muted">' + (persisted === true
+      ? "Protección del navegador: activada. El navegador no borrará tus datos por su cuenta cuando ande justo de espacio."
+      : "Protección del navegador: no concedida por ahora. Instalar la app en la pantalla de inicio ayuda a que el navegador la conceda.") +
+      ' Esto no protege si tú borras los datos del sitio o del navegador: para eso está la copia.</p>' +
     '<button class="btn fill wide" data-a="backup">Guardar copia</button>' +
     '<button class="btn wide" data-a="restore">Restaurar copia</button></div>' +
   '<div class="note"><b>Antes de empezar.</b> Este plan es orientativo y no sustituye a tu médico. Si tienes un diagnóstico o tomas medicación, consúltalo con él. Con anticoagulantes, por ejemplo, conviene hablar de la cantidad de verduras de hoja verde (espinacas, acelgas).</div>';
@@ -570,7 +610,7 @@ function renderConsejos(){
 function render(){
   if(S.day === null) S.day = curDay();
   const main = document.getElementById("app");
-  main.innerHTML = S.view==="hoy" ? renderHoy() : S.view==="plan" ? renderPlan() : S.view==="compra" ? renderCompra() : S.view==="recetas" ? renderRecetas() : S.view==="receta" ? renderReceta() : renderConsejos();
+  main.innerHTML = banner() + (S.view==="hoy" ? renderHoy() : S.view==="plan" ? renderPlan() : S.view==="compra" ? renderCompra() : S.view==="recetas" ? renderRecetas() : S.view==="receta" ? renderReceta() : renderConsejos());
   document.querySelectorAll("nav button").forEach(b => {
     if(b.dataset.v === (S.view==="receta" ? S.prev : S.view)) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
@@ -588,6 +628,7 @@ document.addEventListener("click", e => {
   else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
   else if(a === "week"){ S.week = Number(b.dataset.w); }
   else if(a === "backup"){ doBackup(); }
+  else if(a === "hidehint"){ store.set("hintOff", true); }
   else if(a === "restore"){ doRestore(); }
   else if(a === "place"){ S.place = b.dataset.p; }
   else if(a === "rec"){ if(S.view !== "receta"){ S.prev = S.view; S.y = window.scrollY; } S.rid = b.dataset.id; S.view = "receta"; top = true; }
@@ -607,6 +648,7 @@ document.addEventListener("change", e => {
 });
 
 render();
+askPersist();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
