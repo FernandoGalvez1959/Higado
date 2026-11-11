@@ -1,4 +1,4 @@
-const CACHE = "higado21-v8";
+const CACHE = "higado21-v9";
 const FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -8,5 +8,21 @@ self.addEventListener("activate", e => {
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  let url;
+  try { url = new URL(e.request.url); } catch (err) { return; }
+  if (url.origin !== self.location.origin) return;
+  const esPagina = e.request.mode === "navigate" || url.pathname.endsWith("/") || /\.(html|json)$/.test(url.pathname);
+  if (esPagina) {
+    // Primero la red (así las actualizaciones llegan a la primera); sin conexión, lo guardado.
+    e.respondWith(
+      fetch(url.href, { cache: "reload", credentials: "same-origin" })
+        .then(r => {
+          if (r && r.ok) { const copia = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)).catch(() => {}); }
+          return r;
+        })
+        .catch(() => caches.match(e.request).then(r => r || caches.match("./index.html")))
+    );
+  } else {
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  }
 });
