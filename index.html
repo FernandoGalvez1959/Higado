@@ -534,10 +534,26 @@ function markBackup(){
   store.set("lastBackup", todayISO()); toast("Copia lista.");
   render();
 }
-async function doBackup(){
+/* Nombre: año(4) mes(2) día(2), un espacio y Hígado. Ejemplo: 20261111 Hígado.json */
+function backupFile(){
   const data = {app:"higado21", version:1, fecha:new Date().toISOString(), start:start, done:done, shop:shop};
-  const name = todayISO().replace(/-/g, "") + " Hígado.json";
-  const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+  return {name: todayISO().replace(/-/g, "") + " Hígado.json", blob: new Blob([JSON.stringify(data)], {type:"application/json"})};
+}
+function autoBackup(){
+  if(!store.get("auto", true) || !hasData()) return;
+  try{
+    const f = backupFile();
+    const url = URL.createObjectURL(f.blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    store.set("lastBackup", todayISO());
+    toast("Copia guardada al abrir la app.");
+    render();
+  }catch(e){}
+}
+async function doBackup(){
+  const bf = backupFile(), name = bf.name, blob = bf.blob;
   try{
     const file = new File([blob], name, {type:"application/json"});
     if(navigator.canShare && navigator.canShare({files:[file]})){
@@ -602,6 +618,8 @@ function renderConsejos(){
       ? "Protección del navegador: activada. El navegador no borrará tus datos por su cuenta cuando ande justo de espacio."
       : "Protección del navegador: no concedida por ahora. Instalar la app en la pantalla de inicio ayuda a que el navegador la conceda.") +
       ' Esto no protege si tú borras los datos del sitio o del navegador: para eso está la copia.</p>' +
+    '<p class="muted">Cada vez que abres la app se guarda sola una copia, si tienes marcas y tu móvil lo permite. La encontrarás en Descargas.</p>' +
+    '<button class="btn wide" data-a="autotoggle" style="margin-top:0;margin-bottom:10px">Copia al abrir: ' + (store.get("auto", true) ? "activada" : "desactivada") + '. Pulsa para cambiar</button>' +
     '<button class="btn fill wide" data-a="backup">Guardar copia</button>' +
     '<button class="btn wide" data-a="restore">Restaurar copia</button></div>' +
   '<div class="note"><b>Antes de empezar.</b> Este plan es orientativo y no sustituye a tu médico. Si tienes un diagnóstico o tomas medicación, consúltalo con él. Con anticoagulantes, por ejemplo, conviene hablar de la cantidad de verduras de hoja verde (espinacas, acelgas).</div>';
@@ -628,6 +646,7 @@ document.addEventListener("click", e => {
   else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
   else if(a === "week"){ S.week = Number(b.dataset.w); }
   else if(a === "backup"){ doBackup(); }
+  else if(a === "autotoggle"){ store.set("auto", !store.get("auto", true)); }
   else if(a === "hidehint"){ store.set("hintOff", true); }
   else if(a === "restore"){ doRestore(); }
   else if(a === "place"){ S.place = b.dataset.p; }
@@ -649,6 +668,7 @@ document.addEventListener("change", e => {
 
 render();
 askPersist();
+autoBackup();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
