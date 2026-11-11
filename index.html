@@ -534,10 +534,10 @@ function markBackup(){
   store.set("lastBackup", todayISO()); toast("Copia lista.");
   render();
 }
-/* Nombre: año(4) mes(2) día(2), un espacio y Hígado. Ejemplo: 20261111 Hígado.json */
+/* Nombre: Hígado, un espacio y la fecha añomesdía. Ejemplo: Hígado 20261111.json */
 function backupFile(){
   const data = {app:"higado21", version:1, fecha:new Date().toISOString(), start:start, done:done, shop:shop};
-  return {name: todayISO().replace(/-/g, "") + " Hígado.json", blob: new Blob([JSON.stringify(data)], {type:"application/json"})};
+  return {name: "Hígado " + todayISO().replace(/-/g, "") + ".json", blob: new Blob([JSON.stringify(data)], {type:"application/json"})};
 }
 function autoBackup(){
   if(!store.get("auto", true) || !hasData()) return;
