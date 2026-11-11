@@ -356,6 +356,8 @@ const SHOP = {
   ]
 };
 
+const VERSION = "10 · 11-11-2026";
+
 /* ---------- Almacenamiento seguro ---------- */
 const store = {
   get(k, f){ try { const v = localStorage.getItem(k); return v === null ? f : JSON.parse(v); } catch(e){ return f; } },
@@ -549,6 +551,7 @@ function autoBackup(){
     a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     store.set("lastBackup", todayISO());
+    store.set("lastAuto", {t:new Date().toLocaleString("es-ES"), n:f.name});
     toast("Copia descargada: " + f.name);
   }catch(e){ toast("No se pudo guardar la copia automática."); }
 }
@@ -556,11 +559,26 @@ function autoBackup(){
    la copia de cada apertura se hace con el primer toque. */
 document.addEventListener("click", e => {
   if(!autoPending) return;
-  autoPending = false;
   const b = e.target.closest && e.target.closest("[data-a]");
-  if(b && (b.dataset.a === "backup" || b.dataset.a === "restore" || b.dataset.a === "autotoggle")) return;
+  if(b && (b.dataset.a === "backup" || b.dataset.a === "restore" || b.dataset.a === "autotoggle" || b.dataset.a === "updateapp")){ autoPending = false; return; }
+  if(!store.get("auto", true)){ autoPending = false; return; }
+  if(!hasData()) return;   // espera al primer toque en que ya haya marcas
+  autoPending = false;
   autoBackup();
 }, true);
+async function updateApp(){
+  try{
+    if("serviceWorker" in navigator){
+      const rs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r => r.unregister()));
+    }
+    if(window.caches){
+      const ks = await caches.keys();
+      await Promise.all(ks.map(k => caches.delete(k)));
+    }
+  }catch(e){}
+  location.reload();
+}
 async function doBackup(){
   const bf = backupFile(), name = bf.name, blob = bf.blob;
   try{
@@ -623,6 +641,7 @@ function renderConsejos(){
   '<div class="card"><h3>Copia de seguridad</h3>' +
     '<p>Guarda en un archivo tus marcas, tus listas de la compra y la fecha de inicio, por si cambias de móvil o borras los datos del navegador. Guárdalo en Drive o envíatelo a ti mismo.</p>' +
     '<p class="muted">' + (store.get("lastBackup", null) ? "Última copia: " + fmt(store.get("lastBackup", null)) : "Todavía no has hecho ninguna copia.") + '</p>' +
+    (store.get("lastAuto", null) ? '<p class="muted">Última copia al abrir: ' + store.get("lastAuto", null).t + " · " + store.get("lastAuto", null).n + '</p>' : '') +
     '<p class="muted">' + (persisted === true
       ? "Protección del navegador: activada. El navegador no borrará tus datos por su cuenta cuando ande justo de espacio."
       : "Protección del navegador: no concedida por ahora. Instalar la app en la pantalla de inicio ayuda a que el navegador la conceda.") +
@@ -631,6 +650,9 @@ function renderConsejos(){
     '<button class="btn wide" data-a="autotoggle" style="margin-top:0;margin-bottom:10px">Copia al abrir: ' + (store.get("auto", true) ? "activada" : "desactivada") + '. Pulsa para cambiar</button>' +
     '<button class="btn fill wide" data-a="backup">Guardar copia</button>' +
     '<button class="btn wide" data-a="restore">Restaurar copia</button></div>' +
+  '<div class="card"><h3>Versión de la app</h3><p>Versión ' + VERSION + '</p>' +
+    '<p class="muted">Si has subido una versión nueva a GitHub y no se nota, pulsa el botón. No borra tus datos.</p>' +
+    '<button class="btn wide" data-a="updateapp">Actualizar la app</button></div>' +
   '<div class="note"><b>Antes de empezar.</b> Este plan es orientativo y no sustituye a tu médico. Si tienes un diagnóstico o tomas medicación, consúltalo con él. Con anticoagulantes, por ejemplo, conviene hablar de la cantidad de verduras de hoja verde (espinacas, acelgas).</div>';
 }
 
@@ -655,6 +677,7 @@ document.addEventListener("click", e => {
   else if(a === "meal"){ const k = S.day + ":" + b.dataset.k; if(done[k]) delete done[k]; else done[k] = 1; store.set("done", done); }
   else if(a === "week"){ S.week = Number(b.dataset.w); }
   else if(a === "backup"){ doBackup(); }
+  else if(a === "updateapp"){ updateApp(); return; }
   else if(a === "autotoggle"){ store.set("auto", !store.get("auto", true)); }
   else if(a === "hidehint"){ store.set("hintOff", true); }
   else if(a === "restore"){ doRestore(); }
